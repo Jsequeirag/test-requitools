@@ -82,7 +82,6 @@ const Login = () => {
               <div className="mb-4">
                 <TextButton
                   disabled={loading}
-                  type={"submit"}
                   onClick={() => {
                     navigate("/home");
                   }}
