@@ -1,9 +1,15 @@
 import React from "react";
 import Layout from "../../components/Layout/Layout";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import TextButton from "../../components/Button/TextButton";
 function Requisition() {
   const navigate = new useNavigate();
+  const onSubmit = () => {
+    mutate({
+      content: post,
+    });
+  };
+
   return (
     <Layout>
       <div className="m-4 w-full">
@@ -15,6 +21,7 @@ function Requisition() {
               }}
               text={"Atras"}
             />
+            <p>{state.toString}</p>
             {/*Titulo */}
             <h1 className="px-9 text-3xl p-4">Formulario de Requisición</h1>
           </div>

@@ -12,7 +12,7 @@ export default function TextButton({
   type = "button",
   width = "w-[300px]",
   otherProperties = "",
-  onClick = () => alert("onClick"),
+  onClick = () => {},
   disabled = false,
   icon,
 }) {

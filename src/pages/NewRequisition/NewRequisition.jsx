@@ -1,497 +1,199 @@
-import React from "react";
+import { useEffect, useReducer, useState } from "react";
 import Layout from "../../components/Layout/Layout";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import TextButton from "../../components/Button/TextButton";
+import { initialState, reducer } from "./Reducer";
+import { createRequests } from "../../api/urls/Request";
+import AsyncSelect from "../../components/AsyncComponents/AsyncSelect.jsx"; // Asegúrate de que el nombre sea correcto
+import formStore from "../../../stores/FormStore.js";
+import LoadingModal from "../../components/LoadingModal/LoadingModal";
+import { useNavigate } from "react-router-dom";
+import {
+  getLocalStorageItem,
+  getLocalStorageKeyValue,
+} from "../../utils/localstore";
+import {
+  Entrada,
+  MovimientoLateral,
+  Promocion,
+  Salida,
+  CierrePlaza,
+} from "./RequisitionForm/RequisitionForm.jsx";
+import {
+  RDetailMovimientoLateral,
+  RDetailPromocion,
+  RDetailSalida,
+} from "./RequisitionDetail/RequisitionDetail.jsx";
+import EmployeeInfo from "./EmployeeInfo/EmployeeInfo.jsx";
+import ModalRequisitionDetails from "../../components/ModalRequisitionDetails/ModalRequisitionDetails.jsx";
+import { useApiSend } from "../../api/config/customHooks";
+import { toast } from "react-toastify"; // Asegúrate de tener toast importado
+
 function NewRequisition() {
-  const navigate = new useNavigate();
+  //reacty-router-dom
+  const navigate = useNavigate();
+  // ========== 📍 Location ==========
+  const location = useLocation();
+
+  // ========== 🧠 Global state (Zustand) ==========
+  const formValues = formStore((state) => state.formValues);
+  const setFormValues = formStore((state) => state.setFormValues);
+
+  // ========== 🔄 Reducer ==========
+  const [state, dispatcher] = useReducer(reducer, initialState);
+
+  // ========== 👤 Usuario logueado ==========
+  const userLogged = getLocalStorageKeyValue("requitool-employeeInfo", "id");
+
+  // ========== 📦 API: Crear solicitud ==========
+  const { mutateAsync, isPending, isError } = useApiSend(
+    createRequests,
+    () => {
+      navigate("/requisitions");
+    },
+    (e) => {
+      console.error("Error al crear la solicitud:", e);
+      toast.error("Error al crear la solicitud", {
+        className: "bg-grey-800",
+        progressClassName: "bg-white",
+      });
+    }
+  );
+
+  // ========== 🧩 Efecto: Inicializar formulario si es UPDATE ==========
+  useEffect(() => {
+    if (location.state?.action === "update") {
+      const requisition = location.state.requisition;
+
+      if (requisition) {
+        setFormValues(requisition);
+        console.log(
+          "FormValues inicializados desde location.state:",
+          requisition
+        );
+      } else {
+        const localData = getLocalStorageItem("requitool-requisition");
+        if (localData) {
+          setFormValues(JSON.parse(localData));
+          console.log("Requisition inicializada desde localStorage");
+        }
+      }
+    }
+  }, [location.state, setFormValues]);
+
+  // ========== 📤 Enviar solicitud de entrada ==========
+  const onSubmitEntradaRequest = async () => {
+    await mutateAsync({
+      ...formValues,
+      userId: userLogged,
+    });
+  };
+
+  // ========== 🧠 Switch para modal de detalles ==========
+  const switchRDetail = (requestTypeId) => {
+    switch (requestTypeId) {
+      case 1:
+        return (
+          <RDetailSalida
+            closeModel={() => dispatcher({ type: "SET_OPEN_MODAL" })}
+          />
+        );
+      case 3:
+        return <RDetailPromocion />;
+      case 4:
+        return <RDetailMovimientoLateral />;
+      default:
+        return null;
+    }
+  };
+
+  // ========== ✅ Crear solicitud ==========
+  const createRequest = () => {
+    if (formValues?.requestTypeId === 2 || formValues?.requestTypeId === 5) {
+      return onSubmitEntradaRequest();
+    }
+    dispatcher({ type: "SET_OPEN_MODAL" });
+  };
+
+  // ========== 🛠 Actualizar solicitud (por hacer) ==========
+  const updateRequest = () => {
+    // Lógica futura
+  };
+
+  // ========== 🚀 Enviar según modo ==========
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (location.state?.action === "update") {
+      updateRequest();
+    } else if (location.state?.action === "create") {
+      createRequest();
+    }
+  };
+
   return (
     <Layout>
+      <ModalRequisitionDetails
+        openModal={state.openModal}
+        setOpenModal={() =>
+          dispatcher({
+            type: "SET_OPEN_MODAL",
+          })
+        }
+        childrenComponent={switchRDetail(formValues.requestTypeId)}
+      />{" "}
+      <LoadingModal openModal={isPending} text="Creando Solicitud" />
       <div className="m-4 w-full">
-        <div className="border-b  bg-white rounded-sm w-[86%]">
+        <div className="border-b bg-white rounded-sm w-[86%]">
           <div className="flex items-center border-b p-4 mx-2">
-            <TextButton
-              onClick={() => {
-                navigate("/home");
-              }}
-              text={"Atras"}
-            />
+            <a href="/home">
+              <TextButton text={"Atras"} />
+            </a>
             {/*Titulo */}
             <h1 className="px-9 text-3xl p-4">Formulario de Requisición</h1>
+            <h1 className="px-9 text-3xl p-4">
+              {JSON.stringify(formValues)}
+            </h1>{" "}
+            {/* Esto debería mostrar el valor */}
           </div>
           {/*formulario*/}
-          <form action="" className="p-10">
+          <form action="" className="p-10" onSubmit={onSubmit}>
+            <p>{JSON.stringify(formValues)}</p>
             {/*seleccionar Acción*/}
-            {/*row 1 */}
+            {/*row 1 */} <h1 className="text-2xl">Tipo de solicitud</h1>
             <div className="flex">
               <div className="flex-1 m-5">
                 <label
                   className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
+                  htmlFor="requestTypeId"
                 >
                   Acción
                 </label>
-                <select
-                  className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                  name=""
-                  id=""
-                >
-                  {" "}
-                  <option selected>Seleccionar una opción</option>
-                  <option value="FR">Sálida</option>
-                  <option value="DE">Entrada</option>
-                </select>
+                {/* Aquí pasamos el valor directamente para controlar el select */}
+                <AsyncSelect
+                  url={`https://localhost:7040/getRequestType`}
+                  name={"requestTypeId"}
+                  value={formValues?.requestTypeId || ""} // Usamos 'value' y un fallback a ""
+                />
               </div>
               <div className="flex-1 m-5"></div>
             </div>
             {/*Info Empleado */}
-            <h1 className="text-2xl">Información de Empleado</h1>
-            {/*row 2 - empleado*/}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Nombre
-                </label>
-                <input
-                  className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                  id="name"
-                  type="text"
-                  name="name"
-                  value={"Ana berrocal Goldberg"}
-                  placeholder="Nombre de empleado"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  # Exactus
-                </label>
-                <input
-                  className=" border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none "
-                  disabled
-                  id="idExactus"
-                  type="text"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  value={"12345"}
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-            {/*row 3 - supervisor*/}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Supervisor
-                </label>
-                <input
-                  className="border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none "
-                  id="name"
-                  type="text"
-                  name="name"
-                  disabled
-                  value={"Arnold Golberg Rodriguez"}
-                  placeholder="Nombre de supervisor"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  # POS_COD
-                </label>
-                <input
-                  className=" border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none "
-                  disabled
-                  id="idExactus"
-                  type="text"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  value={"54321"}
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>{" "}
-            {/*row 4 - grado - departamento*/}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Grado
-                </label>
-                <input
-                  className="border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none "
-                  id="name"
-                  type="text"
-                  name="name"
-                  disabled
-                  value={"Grado A"}
-                  placeholder="Nombre de supervisor"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Departamento
-                </label>
-                <input
-                  className=" border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none "
-                  disabled
-                  id="idExactus"
-                  type="text"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  value={"Departamento A"}
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>{" "}
-            {/*row 5 - proyecto - fecha ingreso*/}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Proyecto
-                </label>
-                <input
-                  className="border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none "
-                  id="name"
-                  type="text"
-                  name="name"
-                  disabled
-                  value={"Proyecto A"}
-                  placeholder="Nombre de supervisor"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Fecha de Ingreso
-                </label>
-                <input
-                  className=" border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none "
-                  disabled
-                  id="idExactus"
-                  type="date"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  value={"11-04-2000"}
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>{" "}
+            <EmployeeInfo />
             {/*Info acción*/}
-            <h1 className="text-2xl">Información de Acción</h1> {/*renuncia */}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Motivo
-                </label>
-                <select
-                  className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                  name=""
-                  id=""
-                >
-                  <option selected>Seleccionar una opción</option>
-                  <option value="FR" selected>
-                    Despido
-                  </option>
-                  <option value="DE">Renuncia</option>
-                </select>
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Carta de Renuncia
-                </label>
-                <input
-                  className=" border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none "
-                  id="idExactus"
-                  type="file"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>{" "}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Tipo de Despido
-                </label>
-                <select
-                  className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                  name=""
-                  id=""
-                >
-                  <option selected>Seleccionar una opción</option>
-                  <option value="FR" selected>
-                    Rform
-                  </option>
-                </select>
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Cform
-                </label>
-                <input
-                  className=" border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none "
-                  disabled
-                  id="idExactus"
-                  value="2343"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>{" "}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Recontratable
-                </label>
-                <select
-                  className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                  name=""
-                  id=""
-                >
-                  <option selected>Seleccionar una opción</option>
-                  <option value="FR" selected>
-                    Sí
-                  </option>{" "}
-                  <option value="FR" selected>
-                    No
-                  </option>
-                </select>
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Fecha Oficial de Salida
-                </label>
-                <input
-                  className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                  type="date"
-                  id="idExactus"
-                  value="2343"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>{" "}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Fecha Real de Salida
-                </label>
-                <input
-                  className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                  type="date"
-                  id="idExactus"
-                  value="2343"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Fecha Entrega de Equipo
-                </label>
-                <input
-                  className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                  type="date"
-                  id="idExactus"
-                  value="2343"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>{" "}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Fecha Real de Salida
-                </label>
-                <input
-                  className="border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none"
-                  disabled
-                  type="text"
-                  id="idExactus"
-                  value="85022903"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Correo Personal
-                </label>
-                <input
-                  disabled
-                  className="border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none"
-                  type="text"
-                  id="idExactus"
-                  value="JOSE@GMAIL.COM"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>{" "}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Motivo
-                </label>
-                <select
-                  className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                  name=""
-                  id=""
-                >
-                  {" "}
-                  <option selected>Seleccionar una opción</option>
-                  <option value="FR" selected>
-                    Motivo A
-                  </option>
-                  <option value="DE">Motivo B</option>
-                </select>
-              </div>
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Nueva Empresa
-                </label>
-                <input
-                  disabled
-                  className="border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none"
-                  type="text"
-                  id="idExactus"
-                  value="Orbitas"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>{" "}
-            <div className="flex">
-              <div className="flex-1 m-5">
-                <label
-                  className="block text-black text-lg font-bold mb-2"
-                  htmlFor="userName"
-                >
-                  Comentario
-                </label>
-                <textarea
-                  disabled
-                  className="border rounded-sm w-full py-2 px-3 text-grey-darker text-lg  bg-slate-100 focus:outline-none h-[200px]"
-                  type="text"
-                  id="idExactus"
-                  value="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
-                  name="idExactus"
-                  placeholder="Dígite su usuario"
-                  onChange={() => {}}
-                  /* required*/
-                  autoComplete="off"
-                />
-              </div>
-            </div>
+            {formValues?.requestTypeId && (
+              <h1 className="text-2xl">Información de Acción</h1>
+            )}
+            {/*renuncia */}
+            {formValues?.requestTypeId === 1 && <Salida />}
+            {/*entrada*/}
+            {formValues?.requestTypeId === 2 && <Entrada />}
+            {/*Salida Lateral*/}
+            {formValues?.requestTypeId === 3 && <Promocion />}
+            {formValues?.requestTypeId === 4 && <MovimientoLateral />}
+            {formValues?.requestTypeId === 5 && <CierrePlaza />}
             {/*button*/}
             <div className="w-full flex justify-center items-center border-t py-4">
-              <TextButton
-                onClick={() => {
-                  navigate("/home");
-                }}
-                text={"Enviar"}
-              />
+              <TextButton type={"submit"} text={"Completar"} />
             </div>
           </form>
         </div>

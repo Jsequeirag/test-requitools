@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const client = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "https://localhost:7040",
   headers: {
     "Content-Type": "application/json",
   },
@@ -27,10 +27,9 @@ export const request = async (options) => {
     };
 
     const onError = (error) => {
+      console.log(error.response?.data);
       return Promise.reject(error.response?.data);
     };
-
-    var response = await client(options).then(onSuccess).catch(onError);
 
     return client(options).then(onSuccess).catch(onError);
   } catch (e) {}

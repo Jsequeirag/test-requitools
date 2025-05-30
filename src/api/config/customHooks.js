@@ -20,7 +20,7 @@ export const useApiSend = (fn, success, error, invalidateKey, options) => {
       success && success(data);
     },
     onError: error,
-    retry: 2,
+    retry: 0,
     ...options,
   });
 };

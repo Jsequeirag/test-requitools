@@ -1,21 +1,36 @@
 import { useNavigate } from "react-router-dom";
-import { React, useState, Fragment } from "react";
-
+import { React, useReducer, useEffect } from "react";
 import "./login.css";
 import { motion } from "framer-motion";
-import Loading from "../../components/Loading/Loading";
+import { initialState, reducer } from "./Reducer";
 import TextButton from "../../components/Button/TextButton";
+import { useApiSend } from "../../api/config/customHooks";
+import { login } from "../../api/urls/auth";
 
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+import { getRolesByEmployeeId } from "../../api/urls/userRole";
+
+import { saveLocalStorage } from "../../utils/localstore";
+
 const Login = () => {
   const navigate = new useNavigate();
-  const [userCredentials, setUserCredentials] = useState({});
-  const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  function handleData(e) {
-    setUserCredentials({ ...userCredentials, [e.target.name]: e.target.value });
-  }
-  const handleLogin = async (e) => {};
+  const [state, dispatcher] = useReducer(reducer, initialState);
+  const { isPending, mutateAsync } = useApiSend(login);
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    mutateAsync(state.formValues)
+      .then(async (data) => {
+        saveLocalStorage("requitool-employeeInfo", data);
+        await getRolesByEmployeeId(data.employeeId).then((res) => {
+          saveLocalStorage("requitool-roles", res);
+        });
+        navigate("/home");
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
     <motion.div
       className="box"
@@ -23,9 +38,10 @@ const Login = () => {
       animate={{ opacity: 1 }}
     >
       <div className="bg flex flex-row justify-center items-center h-[100vh]">
-        <div className="flex flex-row  justify-center items-center pc:w-[45%] movil:w-[95%]  bg-slate-50 rounded-sm p-5">
-          <div className="flex-1 pc:flex pc:flex-col items-center justify-center h-[400px] rounded-sm  movil:hidden">
-            <img
+        <div className="flex flex-row justify-center items-center pc:w-[45%] movil:w-[95%] bg-white/70 backdrop-blur-md rounded-lg p-8 shadow-lg">
+          {/* Contenedor de la imagen */}
+          <div className="flex-1 pc:flex pc:flex-col items-center justify-center h-[400px] rounded-lg overflow-hidden movil:hidden">
+          <img
               className="pc:block movil:hidden"
               src="/assets/resourcesLogo.png"
               width="250"
@@ -33,70 +49,90 @@ const Login = () => {
             />
           </div>
 
-          <form
-            onSubmit={handleLogin}
-            className="flex flex-col flex-1 ml-5  ctext-primary "
-          >
+          {/* Formulario */}
+          <form onSubmit={onSubmit} className="flex flex-col flex-1 ml-5">
             <div className="m-4 flex justify-center items-center flex-col"></div>
             <div className="mb-4">
-              <p className="text-4xl mb-4 font-semibold">
+              <p className="text-4xl mb-4 font-semibold text-gray-800">
                 Bienvenido a Requitools
               </p>
               <label
-                className="block text-black text-lg font-bold mb-2"
-                htmlFor="userName"
+                className="block text-gray-700 text-lg font-bold mb-2"
+                htmlFor="employeeId"
               >
                 Usuario
               </label>
               <input
-                className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
-                id="userName"
+                className="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-[#bdab78] focus:border-[#bdab78]"
+                id="employeeId"
                 type="text"
-                name="userName"
+                name="employeeId"
                 placeholder="Dígite su usuario"
-                onChange={handleData}
-                /* required*/
+                onChange={(e) =>
+                  dispatcher({
+                    type: "SET_FORM_VALUES",
+                    payload: { [e.target.name]: e.target.value },
+                  })
+                }
                 autoComplete="off"
-              ></input>
+              />
             </div>
             <div className="mb-6">
               <label
-                className="block text-black  text-lg font-bold mb-2"
+                className="block text-gray-700 text-lg font-bold mb-2"
                 htmlFor="password"
               >
                 Contraseña
               </label>
               <input
-                className="shadow border  rounded-sm w-full py-2 px-3 text-grey-darker mb-3 text-lg focus:coutline-input"
+                className="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-[#bdab78] focus:border-[#bdab78]"
                 id="password"
                 type="password"
                 name="password"
                 placeholder="******"
-                onChange={handleData}
-                /* required*/
-                minLength={4}
-              ></input>
-              <p className="text-red-700 text-lg  italic">{errorMessage}</p>
+                onChange={(e) => {
+                  dispatcher({
+                    type: "SET_FORM_VALUES",
+                    payload: { [e.target.name]: e.target.value },
+                  });
+                }}
+                minLength={6}
+                autoComplete="off"
+              />
+              <p className="text-red-700 text-lg italic">{}</p>
             </div>
-            <div className="flex items-center flex-col ">
+            <div className="flex items-center flex-col">
               <div className="mb-4">
                 <TextButton
-                  disabled={loading}
-                  onClick={() => {
-                    navigate("/home");
-                  }}
+                  disabled={isPending}
+                  type="submit"
                   text={"Ingresar"}
                 />
               </div>
             </div>
-            {/*recuperar contraseña*/}
-            <div className="text-center">
-              <p className="flex flex-col">¿Has olvidado tu contraseña?</p>
+
+            {/*recuperar contraseña*/}{" "}
+            <div className="text-center mb-2">
+              <p className="flex flex-col">¿No tienes cuenta?</p>
               <a
                 className="inline-block align-baseline text-black  font-bold   text-blue hover:text-blue-darker"
-                href="#"
+                href="/register"
               >
-                Presione aquí
+                Registrate aquí
+              </a>
+            </div>
+
+            <div className="text-center">
+              <p className="flex flex-col text-gray-700">
+                ¿Has olvidado tu contraseña?
+              </p>
+              <a
+
+                className="inline-block align-baseline text-black  font-bold   text-blue hover:text-blue-darker"
+                href="/recoverPassword"
+
+              >
+                Recuperar aquí
               </a>
             </div>
           </form>
