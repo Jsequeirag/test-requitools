@@ -101,7 +101,7 @@ export default [
   },
   {
     path: "*",
-    element: <Navigate to="/rolesAdministration" replace />,
+    element: <Navigate to="/login" replace />,
     title: "Login",
   },
 ];
