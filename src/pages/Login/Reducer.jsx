@@ -1,5 +1,5 @@
 export const initialState = {
-  formValues: {},
+  formValues: { employeeId: 784013, password: 123456 },
 };
 export const reducer = (state, action) => {
   switch (action.type) {
