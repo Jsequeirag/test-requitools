@@ -41,7 +41,7 @@ const Login = () => {
         <div className="flex flex-row justify-center items-center pc:w-[45%] movil:w-[95%] bg-white/70 backdrop-blur-md rounded-lg p-8 shadow-lg">
           {/* Contenedor de la imagen */}
           <div className="flex-1 pc:flex pc:flex-col items-center justify-center h-[400px] rounded-lg overflow-hidden movil:hidden">
-          <img
+            <img
               className="pc:block movil:hidden"
               src="/assets/resourcesLogo.png"
               width="250"
@@ -67,6 +67,7 @@ const Login = () => {
                 id="employeeId"
                 type="text"
                 name="employeeId"
+                value={784013}
                 placeholder="Dígite su usuario"
                 onChange={(e) =>
                   dispatcher({
@@ -90,6 +91,7 @@ const Login = () => {
                 type="password"
                 name="password"
                 placeholder="******"
+                value={123456}
                 onChange={(e) => {
                   dispatcher({
                     type: "SET_FORM_VALUES",
@@ -110,7 +112,6 @@ const Login = () => {
                 />
               </div>
             </div>
-
             {/*recuperar contraseña*/}{" "}
             <div className="text-center mb-2">
               <p className="flex flex-col">¿No tienes cuenta?</p>
@@ -121,16 +122,13 @@ const Login = () => {
                 Registrate aquí
               </a>
             </div>
-
             <div className="text-center">
               <p className="flex flex-col text-gray-700">
                 ¿Has olvidado tu contraseña?
               </p>
               <a
-
                 className="inline-block align-baseline text-black  font-bold   text-blue hover:text-blue-darker"
                 href="/recoverPassword"
-
               >
                 Recuperar aquí
               </a>
