@@ -20,10 +20,14 @@ export default function Home() {
 
   return (
     <Layout>
-      <div></div>
-      <div className="m-10 flex space-x-4">
+      <div className="flex justify-center mt-6">
+        <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-100">
+          Dashboard
+        </h1>
+      </div>
+      <div className="m-10 flex space-x-4 justify-center">
         {" "}
-        {/* Usamos space-x-4 para la separación */}
+        {/* Usamos space-x-4 para la separación y justify-center para centrar */}
         <div
           onClick={() =>
             navigate("/newRequisition", {

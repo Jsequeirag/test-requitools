@@ -3,7 +3,7 @@ import Layout from "../../components/Layout/Layout";
 import { useLocation } from "react-router-dom";
 import TextButton from "../../components/Button/TextButton";
 import { initialState, reducer } from "./Reducer";
-import { createRequests } from "../../api/urls/Request";
+import { createRequests, updateRequests } from "../../api/urls/Request";
 import AsyncSelect from "../../components/AsyncComponents/AsyncSelect.jsx"; // Asegúrate de que el nombre sea correcto
 import formStore from "../../../stores/FormStore.js";
 import LoadingModal from "../../components/LoadingModal/LoadingModal";
@@ -46,7 +46,10 @@ function NewRequisition() {
   const userLogged = getLocalStorageKeyValue("requitool-employeeInfo", "id");
 
   // ========== 📦 API: Crear solicitud ==========
-  const { mutateAsync, isPending, isError } = useApiSend(
+  const {
+    mutateAsync: createRequisition,
+    isPending: isPendingCreateRequisition,
+  } = useApiSend(
     createRequests,
     () => {
       navigate("/requisitions");
@@ -59,12 +62,28 @@ function NewRequisition() {
       });
     }
   );
-
+  // ========== 📦 API: actualizar solicitud ==========
+  const {
+    mutateAsync: updateRequisition,
+    isPending: isPendingUpdateRequisition,
+    isError,
+  } = useApiSend(
+    updateRequests,
+    () => {
+      navigate("/requisitions");
+    },
+    (e) => {
+      console.error("Error al crear la solicitud:", e);
+      toast.error("Error al crear la solicitud", {
+        className: "bg-grey-800",
+        progressClassName: "bg-white",
+      });
+    }
+  );
   // ========== 🧩 Efecto: Inicializar formulario si es UPDATE ==========
   useEffect(() => {
     if (location.state?.action === "update") {
       const requisition = location.state.requisition;
-
       if (requisition) {
         setFormValues(requisition);
         console.log(
@@ -83,10 +102,18 @@ function NewRequisition() {
 
   // ========== 📤 Enviar solicitud de entrada ==========
   const onSubmitEntradaRequest = async () => {
-    await mutateAsync({
-      ...formValues,
-      userId: userLogged,
-    });
+    if (location.state?.action === "create") {
+      await createRequisition({
+        ...formValues,
+        userId: userLogged,
+      });
+    }
+    if (location.state?.action === "update") {
+      await updateRequisition({
+        ...formValues,
+        userId: userLogged,
+      });
+    }
   };
 
   // ========== 🧠 Switch para modal de detalles ==========
@@ -108,7 +135,7 @@ function NewRequisition() {
   };
 
   // ========== ✅ Crear solicitud ==========
-  const createRequest = () => {
+  const createNewRequest = () => {
     if (formValues?.requestTypeId === 2 || formValues?.requestTypeId === 5) {
       return onSubmitEntradaRequest();
     }
@@ -117,7 +144,10 @@ function NewRequisition() {
 
   // ========== 🛠 Actualizar solicitud (por hacer) ==========
   const updateRequest = () => {
-    // Lógica futura
+    if (formValues?.requestTypeId === 2 || formValues?.requestTypeId === 5) {
+      return onSubmitEntradaRequest();
+    }
+    dispatcher({ type: "SET_OPEN_MODAL" });
   };
 
   // ========== 🚀 Enviar según modo ==========
@@ -126,7 +156,7 @@ function NewRequisition() {
     if (location.state?.action === "update") {
       updateRequest();
     } else if (location.state?.action === "create") {
-      createRequest();
+      createNewRequest();
     }
   };
 
@@ -141,7 +171,14 @@ function NewRequisition() {
         }
         childrenComponent={switchRDetail(formValues.requestTypeId)}
       />{" "}
-      <LoadingModal openModal={isPending} text="Creando Solicitud" />
+      <LoadingModal
+        openModal={isPendingCreateRequisition || isPendingUpdateRequisition}
+        text={
+          location.state?.action === "update"
+            ? "Actualizando solicitud"
+            : "Creando solicitud"
+        }
+      />
       <div className="m-4 w-full">
         <div className="border-b bg-white rounded-sm w-[86%]">
           <div className="flex items-center border-b p-4 mx-2">
@@ -150,9 +187,7 @@ function NewRequisition() {
             </a>
             {/*Titulo */}
             <h1 className="px-9 text-3xl p-4">Formulario de Requisición</h1>
-            <h1 className="px-9 text-3xl p-4">
-              {JSON.stringify(formValues)}
-            </h1>{" "}
+
             {/* Esto debería mostrar el valor */}
           </div>
           {/*formulario*/}
@@ -168,9 +203,14 @@ function NewRequisition() {
                 >
                   Acción
                 </label>
-                {/* Aquí pasamos el valor directamente para controlar el select */}
+
                 <AsyncSelect
-                  url={`https://localhost:7040/getRequestType`}
+                  url={`https://localhost:7040/getRequestType/${
+                    location.state?.action === "update" &&
+                    formValues?.requestTypeId !== 1
+                      ? true
+                      : false
+                  }`}
                   name={"requestTypeId"}
                   value={formValues?.requestTypeId || ""} // Usamos 'value' y un fallback a ""
                 />
@@ -178,7 +218,7 @@ function NewRequisition() {
               <div className="flex-1 m-5"></div>
             </div>
             {/*Info Empleado */}
-            <EmployeeInfo />
+            {formValues?.requestTypeId !== 2 && <EmployeeInfo />}
             {/*Info acción*/}
             {formValues?.requestTypeId && (
               <h1 className="text-2xl">Información de Acción</h1>

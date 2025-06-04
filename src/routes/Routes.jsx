@@ -15,6 +15,7 @@ import PayrollDashboard from "../pages/PayrollDashboard/PayrollDashboard";
 import FinanceDasahboard from "../pages/FinanceDashboard/FinanceDasahboard";
 import DepartmentMaintenance from "../pages/Maintenance/DepartmentMaintenance";
 import DepartmentAdministration from "../pages/DepartmentAdministration/DepartmentAdministration";
+import PayrollRequest from "../pages/PayrollDashboard/PayrollRequest";
 //https://dev.to/kachiic/the-right-way-structure-your-react-router-1i3l
 export default [
   {
@@ -92,6 +93,11 @@ export default [
     path: "departmentAdministration",
     element: <DepartmentAdministration />,
     title: "departmentAdministration",
+  },
+  {
+    path: "payrollRequests",
+    element: <PayrollRequest />,
+    title: "payrollRequests",
   },
   {
     path: "*",

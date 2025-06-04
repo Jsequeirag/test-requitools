@@ -65,16 +65,16 @@ function Requisitions() {
   return (
     <Layout>
       <LoadingModal openModal={requestIsPending} />
-      <div className="m-4 w-full">
+      <div className="m-4 ">
         <div className="border-b bg-white rounded-sm  h-full">
           <div className="flex items-center border-b p-4 mx-2 justify-between">
             <div className="flex items-center p-4 mx-2">
               <a href="/home">
                 <TextButton text={"Atras"} />
               </a>
-              <h1 className="px-9 text-3xl p-4"> Lista de Requisiciones</h1>#{" "}
+              <h1 className="px-9 text-3xl p-4"> Lista de Requisiciones</h1>
               <h1 className="px-9 text-3xl p-4">
-                {JSON.stringify(formValues)}
+                {/*JSON.stringify(formValues)*/}
               </h1>
             </div>
 
@@ -102,7 +102,9 @@ function Requisitions() {
                     </p>
                     <span
                       className={`p-2 rounded-md font-semibold text-black ${
-                        request.state === 0 ? "bg-yellow-400" : "bg-green-400"
+                        request.state === "pendiente"
+                          ? "bg-yellow-400"
+                          : "bg-blue-400"
                       }`}
                     >
                       {request.state}
@@ -156,7 +158,7 @@ function Requisitions() {
 
                       <div
                         ref={containerRef}
-                        className="flex w-full overflow-x-auto items-start gap-12 px-12 py-[12px] relative scroll-smooth"
+                        className="flex  w-full overflow-x-auto items-start gap-12 px-12 py-[12px] relative scroll-smooth"
                       >
                         {request.requisitions.map((req, idx) => (
                           <>
@@ -201,9 +203,9 @@ function Requisitions() {
                                 <div className="flex justify-end">
                                   <p
                                     className={`text-black font-bold py-1 px-2 rounded-full text-xs ${
-                                      req.state === 0
+                                      req.state === "Pendiente"
                                         ? "bg-yellow-400"
-                                        : "bg-green-400"
+                                        : "bg-blue-400"
                                     }`}
                                   >
                                     {req.state}
@@ -212,23 +214,22 @@ function Requisitions() {
                                 <h3 className="font-semibold text-xl mb-1">
                                   Requisición {req.id}
                                 </h3>
-                                {req.employeeName && (
-                                  <p className="text-gray-600 text-sm mb-1">
-                                    Empleado: {req.employeeName}
-                                  </p>
-                                )}{" "}
-                                {req.requestType?.name && (
-                                  <>
-                                    <p className="text-gray-600 text-sm ">
-                                      {req.requestType.name} /{" "}
-                                      {req.requisitionType.name}{" "}
-                                    </p>{" "}
-                                    <p className="text-gray-600 text-sm ">
-                                      {" "}
-                                      {req.employee.name}
-                                    </p>
-                                  </>
-                                )}
+
+                                <p className="text-gray-600 text-sm ">
+                                  {req.requestType
+                                    ? `${
+                                        req.requestType.name +
+                                        " / " +
+                                        req.requisitionType.name
+                                      }`
+                                    : "Acciones: Por definir"}
+                                </p>
+                                <p className="text-gray-600 text-sm ">
+                                  {req?.employee?.name
+                                    ? req.employee.name
+                                    : "Empleado: Por definir"}
+                                </p>
+
                                 <p className="text-gray-600 mb-4">
                                   {req.details}
                                 </p>

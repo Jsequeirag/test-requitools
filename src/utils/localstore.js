@@ -1,16 +1,32 @@
 export const saveLocalStorage = (itemName, value) => {
-  localStorage.setItem(itemName, JSON.stringify(value));
+  try {
+    localStorage.setItem(itemName, JSON.stringify(value));
+  } catch (error) {
+    console.log(error);
+  }
 };
 export const getLocalStorageItem = (itemName) => {
-  return localStorage.getItem(itemName);
+  try {
+    return localStorage.getItem(itemName);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const removeLocalStorageItem = (itemName) => {
-  return localStorage.removeItem(itemName);
+  try {
+    return localStorage.removeItem(itemName);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const getLocalStorageKeyValue = (itemName, key) => {
-  const object = JSON.parse(localStorage.getItem(itemName));
-  return object[key];
+  try {
+    const object = JSON.parse(localStorage.getItem(itemName));
+    return object[key];
+  } catch (error) {
+    console.log(error);
+  }
 };
 //website Config

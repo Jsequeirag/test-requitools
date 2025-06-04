@@ -9,7 +9,8 @@ import {
   faArrowAltCircleRight, // Toggle menu
   faCog, // Configuraciones (alternativa a faUsersGear)
   faFileInvoiceDollar, // Payroll (alternativa a faFilePowerpoint)
-  faPiggyBank, // Finanzas (alternativa a faFileContract)
+  faCoins,
+  faBorderNone, // Finanzas (alternativa a faFileContract)
 } from "@fortawesome/free-solid-svg-icons";
 import {
   getLocalStorageKeyValue,
@@ -24,6 +25,7 @@ function NewNav() {
   const [darkMode, setDarkMode] = useState(false);
   const [hiddenMenu, setHiddenMenu] = useState(false);
   const [roles, setRoles] = useState([]);
+  const [hasNewPayrollRequests, setHasNewPayrollRequests] = useState(true); // Ejemplo para el punto rojo
   //global
   const setShrinkMenu = WebsiteConfig((state) => state.setShrinkMenu);
   const DarkModeSeleted = () => {
@@ -38,6 +40,7 @@ function NewNav() {
     if (storedShrink) {
       setHiddenMenu(storedShrink === "true");
     }
+    // Aquí podrías tener lógica para verificar si hay nuevas solicitudes de nómina
   }, []);
 
   return (
@@ -119,7 +122,7 @@ function NewNav() {
                 >
                   <FontAwesomeIcon
                     className="min-w-[60px] flex items-center justify-center"
-                    icon={faGauge} // Icono de Dashboard
+                    icon={faBorderNone} // Icono de Dashboard
                     size="2x"
                     color={darkMode ? "#bdab78" : "black"}
                   />
@@ -133,11 +136,14 @@ function NewNav() {
                 </a>
               </li>
               {roles?.find((role) => role?.role?.name === "Payroll") && (
-                <li className="nav-link h-12 mt-2 flex items-center">
+                <li className="nav-link relative h-12 mt-2 flex items-center">
                   <a
                     className="no-underline h-full w-full flex items-center rounded-md transition duration-300 hover:cbg-primary-color dark:hover:bg-slate-500 cursor-pointer"
                     onClick={() => navigate("/payroll")}
                   >
+                    {hasNewPayrollRequests && (
+                      <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
+                    )}
                     <FontAwesomeIcon
                       className="min-w-[60px] flex items-center justify-center"
                       icon={faFileInvoiceDollar} // Icono de Payroll
@@ -154,9 +160,7 @@ function NewNav() {
                   </a>
                 </li>
               )}
-              {roles?.find(
-                (role) => role?.role?.name === "FinanceDepartment"
-              ) && (
+              {roles?.find((role) => role?.role?.name === "Finance ") && (
                 <li className="nav-link h-12 mt-2 flex items-center">
                   <a
                     className="no-underline h-full w-full flex items-center rounded-md transition duration-300 hover:cbg-primary-color dark:hover:bg-slate-500 cursor-pointer"
@@ -164,7 +168,7 @@ function NewNav() {
                   >
                     <FontAwesomeIcon
                       className="min-w-[60px] flex items-center justify-center"
-                      icon={faPiggyBank} // Icono de Finanzas
+                      icon={faCoins} // Icono de Finanzas
                       size="2x"
                       color={darkMode ? "#bdab78" : "black"}
                     />

@@ -12,3 +12,5 @@ export const getRequestByUserId = (userId) =>
 
 export const createRequests = (data) =>
   request({ url: "/createRequest", method: "POST", data });
+export const updateRequests = (data) =>
+  request({ url: "/updateRequest", method: "POST", data });

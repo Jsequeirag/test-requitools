@@ -10,9 +10,10 @@ import {
 import LoadingModal from "../../../components/LoadingModal/LoadingModal";
 import { useNavigate } from "react-router-dom";
 import { getLocalStorageKeyValue } from "../../../utils/localstore";
-import { createRequests } from "../../../api/urls/Request";
+import { createRequests, updateRequests } from "../../../api/urls/Request";
 import { ToastContainer, toast } from "react-toastify";
 import TextButton from "../../../components/Button/TextButton";
+import { useLocation } from "react-router-dom";
 export default function RDetailPromocion() {
   //GLOBAL
   const formValues = formStore((state) => state.formValues);
@@ -21,10 +22,11 @@ export default function RDetailPromocion() {
   const navigate = useNavigate();
   //localstorage
   const userLogged = getLocalStorageKeyValue("requitool-employeeInfo", "id");
-  //submit
+  // ========== 📍 Location ==========
+  const location = useLocation();
   const {
-    mutateAsync,
-    isPending,
+    mutateAsync: createRequest,
+    isPending: isPendingCreateRequest,
     isLoading: isLoadingCreateRequest,
   } = useApiSend(
     createRequests,
@@ -43,10 +45,37 @@ export default function RDetailPromocion() {
       });
     }
   );
+  const {
+    mutateAsync: updateRequest,
+    isPending: isPendingUpdateRequest,
+    isLoading: isLoadingUpdateRequest,
+  } = useApiSend(
+    updateRequests,
+    () => {
+      toast.success("Solicitud creada", {
+        className: "bg-grey-800",
+        progressClassName: "bg-white",
+      });
+      navigate("/requisitions");
+    },
+    (e) => {
+      console.log(e);
+      toast.error("Inconveniente Creando la solicitud", {
+        className: "bg-grey-800",
+        progressClassName: "bg-white",
+      });
+    }
+  );
   //onSubmit
   const onSubmit = async (e) => {
     e.preventDefault();
-    await mutateAsync({
+    if (location.state?.action === "update") {
+      return await updateRequest({
+        ...formValues,
+        ["userId"]: userLogged,
+      });
+    }
+    return await createRequest({
       ...formValues,
       ["userId"]: userLogged,
     });
@@ -68,7 +97,14 @@ export default function RDetailPromocion() {
   return (
     <form onSubmit={onSubmit}>
       <ToastContainer position="bottom-right" theme="dark" />{" "}
-      <LoadingModal openModal={isPending} text="Creando Solicitud" />
+      <LoadingModal
+        openModal={isPendingCreateRequest || isPendingUpdateRequest}
+        text={
+          location.state?.action === "update"
+            ? "Actualizando solicitud"
+            : "Creando solicitud"
+        }
+      />
       <h1 className="text-2xl">Detalles de la Acción</h1> {/*renuncia */}
       <div className="flex">
         <div className="flex-1 m-5">
@@ -81,6 +117,7 @@ export default function RDetailPromocion() {
           <select
             className="shadow  border rounded-sm w-full py-2 px-3 text-grey-darker text-lg focus:coutline-input"
             name="ChangeManager"
+            value={formValues.ChangeManager || ""} // Add this line
             onChange={(e) =>
               setFormValues({
                 [e.target.name]: e.target.value,
@@ -194,13 +231,15 @@ export default function RDetailPromocion() {
           </div>
         </div>
       </div>
-      <p className="text-red-600 text-xl">
-        Nota: 1-preguntar sobre los empleados de los otros departamento(Para
-        enviar correo), 2- Ocupa comfirmar cambios en exactus antes de proseguir
-        con la requisiciones
-      </p>
       <div className="flex w-100 justify-center">
-        <TextButton text={"Crear solicitud"} type={"submit"} />
+        <TextButton
+          text={
+            location.state?.action === "update"
+              ? "Actualizar solicitud"
+              : "Crear solicitud"
+          }
+          type={"submit"}
+        />
       </div>
     </form>
   );

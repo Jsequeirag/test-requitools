@@ -141,7 +141,7 @@ export default function Entrada() {
             }}
             /* required*/
             autoComplete="off"
-            value={formValues.name || ""}
+            value={formValues.lL || ""}
           />
         </div>
       </div>{" "}

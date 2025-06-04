@@ -5,23 +5,26 @@ import { useApiGet } from "../../../api/config/customHooks.js";
 import { useNavigate } from "react-router-dom";
 import TextButton from "../../../components/Button/TextButton";
 import { useApiSend } from "../../../api/config/customHooks";
-import { createRequests } from "../../../api/urls/Request";
+import { createRequests, updateRequests } from "../../../api/urls/Request";
 import { getLocalStorageKeyValue } from "../../../utils/localstore";
 import { ToastContainer, toast } from "react-toastify";
 import { getEmployeesbyBoss } from "../../../api/urls/Employee.js";
 import LoadingModal from "../../../components/LoadingModal/LoadingModal";
+import { useLocation } from "react-router-dom";
 export default function RDetailSalida({ closeModel }) {
   //GLOBAL
   const formValues = formStore((state) => state.formValues);
   const setFormValues = formStore((state) => state.setFormValues);
   //reacty-router-dom
   const navigate = useNavigate();
+  // ========== 📍 Location ==========
+  const location = useLocation();
   //localstorage
   const userLogged = getLocalStorageKeyValue("requitool-employeeInfo", "id");
   //submit
   const {
-    mutateAsync,
-    isPending,
+    mutateAsync: createRequest,
+    isPending: isPendingCreateRequest,
     isLoading: isLoadingCreateRequest,
   } = useApiSend(
     createRequests,
@@ -40,10 +43,37 @@ export default function RDetailSalida({ closeModel }) {
       });
     }
   );
+  const {
+    mutateAsync: updateRequest,
+    isPending: isPendingUpdateRequest,
+    isLoading: isLoadingUpdateRequest,
+  } = useApiSend(
+    updateRequests,
+    () => {
+      toast.success("Solicitud creada", {
+        className: "bg-grey-800",
+        progressClassName: "bg-white",
+      });
+      navigate("/requisitions");
+    },
+    (e) => {
+      console.log(e);
+      toast.error("Inconveniente Creando la solicitud", {
+        className: "bg-grey-800",
+        progressClassName: "bg-white",
+      });
+    }
+  );
   //onSubmit
   const onSubmit = async (e) => {
     e.preventDefault();
-    await mutateAsync({
+    if (location.state?.action === "update") {
+      return await updateRequest({
+        ...formValues,
+        ["userId"]: userLogged,
+      });
+    }
+    return await createRequest({
       ...formValues,
       ["userId"]: userLogged,
     });
@@ -66,7 +96,14 @@ export default function RDetailSalida({ closeModel }) {
   return (
     <form onSubmit={onSubmit}>
       <ToastContainer position="bottom-right" theme="dark" />
-      <LoadingModal openModal={isPending} text="Creando Solicitud" />
+      <LoadingModal
+        openModal={isPendingCreateRequest || isPendingUpdateRequest}
+        text={
+          location.state?.action === "update"
+            ? "Actualizando solicitud"
+            : "Creando solicitud"
+        }
+      />
       <h1 className="text-2xl">Detalles de la Acción</h1>
       {/*renuncia */}
       <div className="flex">
@@ -173,7 +210,14 @@ export default function RDetailSalida({ closeModel }) {
         </div>
       </div>
       <div className="flex w-100 justify-center">
-        <TextButton text={"Crear solicitud"} type={"submit"} />
+        <TextButton
+          text={
+            location.state?.action === "update"
+              ? "Actualizar solicitud"
+              : "Crear solicitud"
+          }
+          type={"submit"}
+        />
       </div>
     </form>
   );
