@@ -9,7 +9,8 @@ function App() {
   const [hiddenMenu, setHiddenMenu] = useState(false); // Estado para controlar el menú
 
   const pageRoutes = routes.map(({ path, title, element }) => {
-    return <Route key={title} path={`/${path}`} element={element} />;
+    const fullPath = path.startsWith("/") ? path : `/${path}`;
+    return <Route key={title} path={fullPath} element={element} />;
   });
 
   // Determinar si el menú de navegación está visible
