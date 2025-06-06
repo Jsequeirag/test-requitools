@@ -25,7 +25,7 @@ export default function Entrada() {
             Motivo
           </label>
           <AsyncSelect
-            url={`https://localhost:7040/GetRequisitionTypeByRequestTypeId/${formValues?.requestTypeId}`}
+            url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/GetRequisitionTypeByRequestTypeId/${formValues?.requestTypeId}`}
             name={"requisitionTypeId"}
             value={formValues?.requisitionTypeId || ""} // Usamos 'value' y un fallback a ""
           />
@@ -156,7 +156,7 @@ export default function Entrada() {
           </label>
           <>
             <AsyncSelect
-              url={`https://localhost:7040/getRequisitionFeature?requisitionFeatureId=3`}
+              url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/getRequisitionFeature?requisitionFeatureId=3`}
               name={"sodMatrix"}
               value={formValues.sodMatrix || ""}
             />

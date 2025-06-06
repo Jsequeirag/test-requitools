@@ -23,7 +23,7 @@ export default function CierrePlaza() {
             Motivo
           </label>
           <AsyncSelect
-            url={`https://localhost:7040/GetRequisitionTypeByRequestTypeId/${formValues?.requestTypeId}`}
+            url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/GetRequisitionTypeByRequestTypeId/${formValues?.requestTypeId}`}
             name={"requisitionTypeId"}
             value={formValues?.requisitionTypeId || ""} // Usamos 'value' y un fallback a ""
           />
@@ -36,7 +36,7 @@ export default function CierrePlaza() {
             Tipo de entregable
           </label>
           <AsyncSelect
-            url={`https://localhost:7040/getRequisitionFeature?requisitionFeatureId=2`}
+            url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/getRequisitionFeature?requisitionFeatureId=2`}
             name={"deliverableType"}
             value={formValues.deliverableType || ""} // Add this line
           />

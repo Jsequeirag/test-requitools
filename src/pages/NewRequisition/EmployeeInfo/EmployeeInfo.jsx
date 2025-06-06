@@ -50,7 +50,7 @@ export default function EmployeeInfo() {
           </label>
 
           <AsyncSelect
-            url={`https://localhost:7040/getEmployees`}
+            url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/getEmployees`}
             name={"employeeId"}
             customNameParam="nombre"
             required={true}

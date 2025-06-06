@@ -205,7 +205,7 @@ function NewRequisition() {
                 </label>
 
                 <AsyncSelect
-                  url={`https://localhost:7040/getRequestType/${
+                  url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/getRequestType/${
                     location.state?.action === "update" &&
                     formValues?.requestTypeId !== 1
                       ? true

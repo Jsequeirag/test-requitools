@@ -63,7 +63,7 @@ export default function SelectRole({ action }) {
           Departamento
         </label>
         <AsyncSelect
-          url={`https://localhost:7040/getDepartments`}
+          url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/getDepartments`}
           name={"roleDepartment"}
           value={roleSelected.departmentId || ""}
           customNameParam="descriptionDepartamento"

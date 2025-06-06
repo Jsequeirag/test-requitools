@@ -24,7 +24,7 @@ export default function Salida() {
             Motivo
           </label>
           <AsyncSelect
-            url={`https://localhost:7040/GetRequisitionTypeByRequestTypeId/${formValues?.requestTypeId}`}
+            url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/GetRequisitionTypeByRequestTypeId/${formValues?.requestTypeId}`}
             name={"requisitionTypeId"}
             value={formValues?.requisitionTypeId || ""} // Usamos 'value' y un fallback a ""
           />
@@ -71,7 +71,7 @@ export default function Salida() {
           </label>
           <>
             <AsyncSelect
-              url={`https://localhost:7040/getRequisitionSubtypeByRequisitionTypeId?RequisitionTypeId= ${
+              url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/getRequisitionSubtypeByRequisitionTypeId?RequisitionTypeId= ${
                 formValues?.requisitionTypeId || ""
               }`}
               value={formValues?.requisitionSubtype || ""}
@@ -272,7 +272,7 @@ export default function Salida() {
             Motivo
           </label>
           <AsyncSelect
-            url={`https://localhost:7040/getRequisitionFeature?requisitionFeatureId=1`}
+            url={`https://requitool-be-dwabg9fhbcexhubv.canadacentral-01.azurewebsites.net/getRequisitionFeature?requisitionFeatureId=1`}
             name={"reason"}
             value={formValues.reason || ""}
           />
